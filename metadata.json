@@ -1,0 +1,8 @@
+{
+  "name": "SDKCTI - Cyber Threat Intelligence Platform",
+  "description": "A comprehensive enterprise-grade Cyber Threat Intelligence (CTI) platform featuring SOC dashboards, threat actor profiling, IOC management, insider threat monitoring, and automated security playbooks.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
