@@ -36,6 +36,11 @@
         body {
             background-color: #0a0c10;
             color: #e5e7eb;
+            margin: 0;
+            padding: 0;
+        }
+        #root {
+            min-height: 100vh;
         }
         ::-webkit-scrollbar {
             width: 6px;
@@ -53,7 +58,6 @@
         }
 
         @media print {
-            /* Esconder tudo que não é o relatório */
             aside, header, nav, button, .no-print, .fixed, .absolute {
                 display: none !important;
                 visibility: hidden !important;
@@ -95,7 +99,6 @@
                 max-width: none !important;
             }
 
-            /* Estilo específico para o bloco de conteúdo dentro da impressão */
             .report-content-block {
                 background: #f9fafb !important;
                 border: 1px solid #e5e7eb !important;
@@ -111,16 +114,16 @@
 <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
     "recharts": "https://esm.sh/recharts@^3.7.0",
     "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "dotenv/": "https://esm.sh/dotenv@^17.3.1/",
     "express": "https://esm.sh/express@^5.2.1",
     "mysql2/": "https://esm.sh/mysql2@^3.17.2/",
     "cors": "https://esm.sh/cors@^2.8.6",
-    "dotenv/": "https://esm.sh/dotenv@^17.3.1/",
     "vite": "https://esm.sh/vite@^7.3.1",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
   }
@@ -129,5 +132,10 @@
 </head>
 <body>
     <div id="root"></div>
+    <!-- 
+      O Vite intercepta esta chamada e serve o arquivo transpilado. 
+      Não utilize importmaps manuais aqui quando estiver usando um bundler como Vite.
+    -->
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
