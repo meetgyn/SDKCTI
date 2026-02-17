@@ -51,6 +51,62 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #374151;
         }
+
+        @media print {
+            /* Esconder tudo que não é o relatório */
+            aside, header, nav, button, .no-print, .fixed, .absolute {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            body, #root, main {
+                background: white !important;
+                color: #1a1a1a !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                display: block !important;
+            }
+
+            .print-container {
+                display: block !important;
+                position: relative !important;
+                width: 100% !important;
+                background: white !important;
+                color: #1a1a1a !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            .report-paper {
+                background: white !important;
+                color: #1a1a1a !important;
+                padding: 40px !important;
+                border: none !important;
+            }
+
+            h1, h2, h3, h4 {
+                color: #000 !important;
+            }
+
+            .prose {
+                color: #333 !important;
+                max-width: none !important;
+            }
+
+            /* Estilo específico para o bloco de conteúdo dentro da impressão */
+            .report-content-block {
+                background: #f9fafb !important;
+                border: 1px solid #e5e7eb !important;
+                color: #111 !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 20mm;
+            }
+        }
     </style>
 <script type="importmap">
 {
@@ -59,7 +115,8 @@
     "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
-    "recharts": "https://esm.sh/recharts@^3.7.0"
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
   }
 }
 </script>

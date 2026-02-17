@@ -3,13 +3,14 @@ import React, { useState, useRef } from 'react';
 import { 
   Key, ShieldAlert, Lock, Search, Filter, Download, 
   ExternalLink, Activity, Upload, Trash2, CheckCircle, 
-  Eye, X, Loader2, ShieldCheck, AlertCircle, Shield
+  Eye, X, Loader2, ShieldCheck, AlertCircle, Shield, Globe
 } from 'lucide-react';
 
 interface LeakEntry {
   id: string;
   date: string;
-  user: string;
+  targetUrl: string;
+  username: string;
   password: string;
   leakSource: string;
   complexity: 'High' | 'Medium' | 'Low';
@@ -17,10 +18,46 @@ interface LeakEntry {
 }
 
 const initialLeaks: LeakEntry[] = [
-  { id: '1', date: '2024-05-24 14:12', user: 'j.silva@corporate.com', password: 'Password123!', leakSource: 'LinkedIn 2024 Dump', complexity: 'Medium', status: 'Validated' },
-  { id: '2', date: '2024-05-23 09:45', user: 'm.ferreira@corp.com', password: '123456', leakSource: 'Canva Breach', complexity: 'Low', status: 'Pending' },
-  { id: '3', date: '2024-05-22 18:22', user: 'admin_sys@internal.net', password: 'Admin@2024!Complex', leakSource: 'RaidForums Collective', complexity: 'High', status: 'Critical' },
-  { id: '4', date: '2024-05-20 11:30', user: 'marketing_team@co.uk', password: 'summer2023', leakSource: 'ComboList_Global_V2', complexity: 'Medium', status: 'Validated' },
+  { 
+    id: '1', 
+    date: '2024-05-24 14:12', 
+    targetUrl: 'https://painel.empresa-cliente.com.br/admin', 
+    username: 'admin_master', 
+    password: 'Password123!', 
+    leakSource: 'Redline Stealer', 
+    complexity: 'Medium', 
+    status: 'Validated' 
+  },
+  { 
+    id: '2', 
+    date: '2024-05-23 09:45', 
+    targetUrl: 'https://outlook.office365.com/mail', 
+    username: 'm.ferreira@corp.com', 
+    password: '123456', 
+    leakSource: 'Vidar Logs', 
+    complexity: 'Low', 
+    status: 'Pending' 
+  },
+  { 
+    id: '3', 
+    date: '2024-05-22 18:22', 
+    targetUrl: 'https://aws.amazon.com/console', 
+    username: 'cloud_architect_dev', 
+    password: 'Admin@2024!Complex', 
+    leakSource: 'Raccoon v2', 
+    complexity: 'High', 
+    status: 'Critical' 
+  },
+  { 
+    id: '4', 
+    date: '2024-05-20 11:30', 
+    targetUrl: 'https://vpn.empresa-cliente.com.br', 
+    username: 'diretor_comercial', 
+    password: 'summer2023', 
+    leakSource: 'Lumni Stealer', 
+    complexity: 'Medium', 
+    status: 'Validated' 
+  },
 ];
 
 export const PasswordLeaksView: React.FC = () => {
@@ -38,21 +75,18 @@ export const PasswordLeaksView: React.FC = () => {
     
     // Simulação de parsing de arquivo tático (CSV/TXT)
     setTimeout(() => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const newLeak: LeakEntry = {
-          id: Date.now().toString(),
-          date: new Date().toLocaleString(),
-          user: 'parsed_user@detected.io',
-          password: 'SecretPassword***',
-          leakSource: file.name,
-          complexity: 'High',
-          status: 'Pending'
-        };
-        setLeaks([newLeak, ...leaks]);
-        setIsUploading(false);
+      const newLeak: LeakEntry = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleString(),
+        targetUrl: 'https://captured-target.com/login',
+        username: 'parsed_user',
+        password: 'SecretPassword***',
+        leakSource: 'Manual Upload (' + file.name + ')',
+        complexity: 'High',
+        status: 'Pending'
       };
-      reader.readAsText(file);
+      setLeaks([newLeak, ...leaks]);
+      setIsUploading(false);
     }, 1500);
   };
 
@@ -65,7 +99,8 @@ export const PasswordLeaksView: React.FC = () => {
   };
 
   const filteredLeaks = leaks.filter(l => 
-    l.user.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    l.targetUrl.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    l.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     l.leakSource.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -76,7 +111,7 @@ export const PasswordLeaksView: React.FC = () => {
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
             <Lock className="text-soc-primary" /> StackPass™ Leak Intel
           </h1>
-          <p className="text-sm text-gray-500">Corporate credential exposure monitoring across deep and dark web databases.</p>
+          <p className="text-sm text-gray-500">Monitoramento de exposição de credenciais corporativas capturadas por Infostealers.</p>
         </div>
         <div className="flex gap-2">
           <input 
@@ -89,13 +124,13 @@ export const PasswordLeaksView: React.FC = () => {
           <button 
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="px-4 py-2 bg-soc-primary text-white rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-soc-primary/80 transition-all shadow-lg shadow-soc-primary/20 disabled:opacity-50"
+            className="px-4 py-2 bg-soc-primary text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-soc-primary/80 transition-all shadow-lg shadow-soc-primary/20 disabled:opacity-50"
           >
             {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-            {isUploading ? 'Parsing File...' : 'Upload Leak List'}
+            {isUploading ? 'Parsing Logs...' : 'Upload Infostealer Logs'}
           </button>
-          <button className="px-4 py-2 bg-soc-danger/10 text-soc-danger border border-soc-danger/20 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-soc-danger/20 transition-all">
-            <ShieldAlert size={18} /> High Risk Domains
+          <button className="px-4 py-2 bg-soc-danger/10 text-soc-danger border border-soc-danger/20 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-soc-danger/20 transition-all">
+            <ShieldAlert size={18} /> High Risk URLs
           </button>
         </div>
       </div>
@@ -107,35 +142,35 @@ export const PasswordLeaksView: React.FC = () => {
           </div>
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-soc-primary/10 rounded-lg text-soc-primary"><Key size={20} /></div>
-            <h3 className="font-bold text-gray-100 uppercase text-xs tracking-widest">Exposed Accounts</h3>
+            <h3 className="font-bold text-gray-100 uppercase text-xs tracking-widest">Exposed Credentials</h3>
           </div>
-          <p className="text-4xl font-black text-white">{leaks.length * 123}</p>
+          <p className="text-4xl font-black text-white">{leaks.length}</p>
           <div className="mt-2 flex items-center gap-1 text-soc-danger text-xs font-bold bg-soc-danger/10 w-fit px-2 py-0.5 rounded">
-            <Activity size={12} /> +12 detected today
+            <Activity size={12} /> Live Exposure
           </div>
         </div>
         <div className="bg-soc-card border border-soc-border p-6 rounded-2xl shadow-lg">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-soc-warning/10 rounded-lg text-soc-warning"><Search size={20} /></div>
-            <h3 className="font-bold text-gray-100 uppercase text-xs tracking-widest">Active Crawlers</h3>
+            <div className="p-2 bg-soc-warning/10 rounded-lg text-soc-warning"><Globe size={20} /></div>
+            <h3 className="font-bold text-gray-100 uppercase text-xs tracking-widest">Target Domains</h3>
           </div>
-          <p className="text-4xl font-black text-white">42</p>
-          <p className="text-xs text-gray-500 mt-2 font-mono">Status: Scanning Telegram Channels</p>
+          <p className="text-4xl font-black text-white">{new Set(leaks.map(l => new URL(l.targetUrl).hostname)).size}</p>
+          <p className="text-xs text-gray-500 mt-2 font-mono">Top: microsoft.com, aws.com</p>
         </div>
         <div className="bg-soc-card border border-soc-border p-6 rounded-2xl shadow-lg">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-soc-success/10 rounded-lg text-soc-success"><ShieldCheck size={20} /></div>
-            <h3 className="font-bold text-gray-100 uppercase text-xs tracking-widest">Resolved Threats</h3>
+            <h3 className="font-bold text-gray-100 uppercase text-xs tracking-widest">Remediated</h3>
           </div>
           <p className="text-4xl font-black text-white">{leaks.filter(l => l.status === 'Mitigated').length}</p>
-          <p className="text-xs text-gray-500 mt-2">Remediation Success Rate: 94%</p>
+          <p className="text-xs text-gray-500 mt-2">Compliance: 88% Recovery</p>
         </div>
       </div>
 
       <div className="bg-soc-card border border-soc-border rounded-2xl overflow-hidden shadow-2xl">
         <div className="p-5 border-b border-soc-border bg-gray-900/30 flex items-center justify-between">
            <h3 className="font-bold text-white flex items-center gap-2">
-             <Activity size={18} className="text-soc-primary" /> Live Intelligence Feed
+             <Activity size={18} className="text-soc-primary" /> Infostealer Intelligence Feed
            </h3>
            <div className="flex gap-2">
              <div className="relative group">
@@ -144,7 +179,7 @@ export const PasswordLeaksView: React.FC = () => {
                   type="text" 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Filter by user or source..." 
+                  placeholder="Filter by URL, user or source..." 
                   className="bg-soc-bg border border-soc-border rounded-xl py-2 pl-9 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-soc-primary w-64 text-white transition-all" 
                 />
              </div>
@@ -156,9 +191,10 @@ export const PasswordLeaksView: React.FC = () => {
             <thead>
               <tr className="bg-gray-900/50 text-gray-500 text-[10px] uppercase tracking-widest font-black border-b border-soc-border">
                 <th className="px-6 py-5">Detection Date</th>
-                <th className="px-6 py-5">Subject User</th>
-                <th className="px-6 py-5">Leak Source</th>
+                <th className="px-6 py-5">Target URL</th>
+                <th className="px-6 py-5">Username</th>
                 <th className="px-6 py-5">Password</th>
+                <th className="px-6 py-5">Leak Source</th>
                 <th className="px-6 py-5">Strength</th>
                 <th className="px-6 py-5">Status</th>
                 <th className="px-6 py-5 text-right">Actions</th>
@@ -170,19 +206,26 @@ export const PasswordLeaksView: React.FC = () => {
                   <td className="px-6 py-4 text-xs font-mono text-gray-500">{leak.date}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-400 border border-soc-border">
-                        {leak.user.charAt(0).toUpperCase()}
+                      <div className="p-2 bg-gray-800 rounded-lg text-soc-primary group-hover:text-white transition-colors">
+                        <Globe size={14} />
                       </div>
-                      <span className="text-sm font-bold text-gray-100">{leak.user}</span>
+                      <span className="text-xs font-mono text-gray-300 max-w-[180px] truncate" title={leak.targetUrl}>
+                        {leak.targetUrl}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-xs text-gray-400 bg-soc-bg px-2 py-1 rounded-lg border border-soc-border">{leak.leakSource}</span>
+                    <span className="text-sm font-bold text-gray-100">{leak.username}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <code className="text-[11px] bg-black/40 px-2 py-1 rounded text-soc-accent font-mono border border-soc-accent/20">
+                    <code className="text-[11px] bg-black/40 px-2 py-1 rounded text-soc-accent font-mono border border-soc-accent/20 group-hover:bg-soc-accent/5">
                       {leak.password}
                     </code>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-xs text-gray-400 bg-soc-bg px-2 py-1 rounded-lg border border-soc-border font-bold">
+                      {leak.leakSource}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -195,7 +238,6 @@ export const PasswordLeaksView: React.FC = () => {
                           }`}></div>
                         ))}
                       </div>
-                      <span className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">{leak.complexity}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -257,7 +299,7 @@ export const PasswordLeaksView: React.FC = () => {
                     <Shield size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">Credential Dossiê</h3>
+                    <h3 className="text-xl font-bold text-white">Infostealer Dossiê</h3>
                     <p className="text-xs text-gray-500 font-mono uppercase tracking-widest">ID: {selectedLeak.id}</p>
                   </div>
                 </div>
@@ -268,32 +310,36 @@ export const PasswordLeaksView: React.FC = () => {
              
              <div className="p-8 space-y-6">
                 <div className="bg-soc-bg border border-soc-border rounded-2xl p-5 space-y-4">
-                   <div className="flex justify-between items-center pb-3 border-b border-soc-border">
-                      <span className="text-[10px] font-bold text-gray-500 uppercase">Subject User</span>
-                      <span className="text-sm font-bold text-white">{selectedLeak.user}</span>
+                   <div className="flex flex-col gap-1 pb-3 border-b border-soc-border">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Target URL / Host</span>
+                      <span className="text-sm font-mono text-white break-all">{selectedLeak.targetUrl}</span>
                    </div>
                    <div className="flex justify-between items-center pb-3 border-b border-soc-border">
-                      <span className="text-[10px] font-bold text-gray-500 uppercase">Cleartext Password</span>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Username</span>
+                      <span className="text-sm font-bold text-white">{selectedLeak.username}</span>
+                   </div>
+                   <div className="flex justify-between items-center pb-3 border-b border-soc-border">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Password</span>
                       <span className="text-sm font-mono text-soc-accent bg-soc-accent/10 px-2 py-0.5 rounded border border-soc-accent/20">
                         {selectedLeak.password}
                       </span>
                    </div>
                    <div className="flex justify-between items-center pb-3 border-b border-soc-border">
-                      <span className="text-[10px] font-bold text-gray-500 uppercase">Leak Context</span>
-                      <span className="text-sm text-gray-300">{selectedLeak.leakSource}</span>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Malware Source</span>
+                      <span className="text-sm text-gray-300 font-bold">{selectedLeak.leakSource}</span>
                    </div>
                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-gray-500 uppercase">Detection Timeline</span>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Detection Date</span>
                       <span className="text-xs text-gray-400 font-mono">{selectedLeak.date}</span>
                    </div>
                 </div>
 
                 <div className="space-y-3">
                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                     <AlertCircle size={14} className="text-soc-warning" /> Recommended Tactical Response
+                     <AlertCircle size={14} className="text-soc-warning" /> Tactical Remediation
                    </h4>
                    <div className="bg-soc-primary/5 border border-soc-primary/20 rounded-xl p-4 text-sm text-gray-400 leading-relaxed italic">
-                     "Triggers mandatory password reset via Azure AD/Google Workspace. Initiate search for credential reuse across all internal VPN/IAM portals. Monitor {selectedLeak.user} for unusual lateral movement."
+                     "Revogar sessões ativas para o usuário {selectedLeak.username}. Forçar reset de senha em {new URL(selectedLeak.targetUrl).hostname}. Iniciar varredura de malware no endpoint de origem se identificado."
                    </div>
                 </div>
              </div>
@@ -303,7 +349,7 @@ export const PasswordLeaksView: React.FC = () => {
                   onClick={() => { handleResolve(selectedLeak.id); setSelectedLeak(null); }}
                   className="flex-1 bg-soc-success text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-soc-success/20 hover:scale-[1.02] transition-all"
                 >
-                  <ShieldCheck size={18} /> Resolve & Close
+                  <ShieldCheck size={18} /> Resolve & Revoke
                 </button>
                 <button 
                   onClick={() => setSelectedLeak(null)}

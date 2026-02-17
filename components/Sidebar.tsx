@@ -15,7 +15,10 @@ import {
   ChevronRight,
   Database,
   Network,
-  Skull
+  Skull,
+  Layout,
+  FileBarChart,
+  GitBranch
 } from 'lucide-react';
 import { Language } from '../App';
 
@@ -46,6 +49,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, langu
 
   const menuSections: MenuItem[] = [
     { id: 'dashboard', label: 'Dashboard', ptLabel: 'Painel Geral', icon: LayoutDashboard },
+    { 
+      label: 'SCOPE & ASSETS', 
+      ptLabel: 'ESCOPO E ATIVOS',
+      isHeader: true,
+      items: [
+        { id: 'scope', label: 'Scope Manager', ptLabel: 'Gestão de Ativos', icon: Layout },
+        { id: 'correlation', label: 'Correlation Center', ptLabel: 'Central de Correlação', icon: GitBranch },
+        { id: 'reports', label: 'Intel Reports', ptLabel: 'Relatórios de Intel', icon: FileBarChart },
+      ]
+    },
     { 
       label: 'THREAT INTEL', 
       ptLabel: 'INTELIGÊNCIA',
@@ -90,10 +103,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, langu
   return (
     <aside className="w-64 bg-soc-card border-r border-soc-border flex flex-col">
       <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-soc-primary rounded flex items-center justify-center shadow-lg shadow-soc-primary/20">
+        <div className="w-8 h-8 rounded bg-soc-primary flex items-center justify-center shadow-lg transition-all duration-500">
           <ShieldAlert className="text-white" size={20} />
         </div>
-        <span className="font-bold text-xl tracking-tight text-white">SENTINEL<span className="text-soc-primary">CTI</span></span>
+        <span className="font-bold text-xl tracking-tight text-white uppercase">Sentinel<span className="text-soc-primary">CTI</span></span>
       </div>
       
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
@@ -114,14 +127,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, langu
                       <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id!)}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-sm font-medium ${
                           activeTab === item.id 
                             ? 'bg-soc-primary text-white shadow-lg shadow-blue-900/20' 
                             : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-100'
                         }`}
                       >
-                        <item.icon size={16} />
-                        {language === 'en' ? item.label : item.ptLabel}
+                        <div className="flex items-center gap-3">
+                          <item.icon size={16} />
+                          {language === 'en' ? item.label : item.ptLabel}
+                        </div>
                       </button>
                     ))}
                   </div>
