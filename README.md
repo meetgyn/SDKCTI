@@ -88,6 +88,7 @@ Após o deploy, a plataforma estará disponível em:
 ├── docker-compose.yml  # Orquestração de containers
 └── App.tsx             # Orquestrador de rotas e estado global
 ```
+<img width="1587" height="806" alt="image" src="https://github.com/user-attachments/assets/722037ee-41e2-4d05-98b2-37ad6d042f9f" />
 
 ---
 **Nota de Segurança**: Esta ferramenta processa dados sensíveis de inteligência. Certifique-se de restringir o acesso ao dashboard e proteger sua `API_KEY`.
