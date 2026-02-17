@@ -93,7 +93,7 @@ export const SupplierAssessmentView: React.FC = () => {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     const reportContent = `
-SENTINEL CTI - RELATÓRIO DE AUDITORIA DE FORNECEDOR
+THREATONE - RELATÓRIO DE AUDITORIA DE FORNECEDOR
 ==================================================
 Data: ${new Date().toLocaleString()}
 Score Final: ${result.score}% - Rating: ${result.label}

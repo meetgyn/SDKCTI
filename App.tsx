@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { Dashboard } from './views/Dashboard';
@@ -20,8 +20,16 @@ import { CorrelationCenter } from './views/CorrelationCenter';
 
 export type Language = 'en' | 'pt';
 
+export interface SystemSettings {
+  user_name: string;
+  user_role: string;
+  system_name: string;
+  accent_color: string;
+}
+
 export interface AuthSite {
   id: string;
+  name: string;
   url: string;
   user: string;
   pass: string;
@@ -36,23 +44,67 @@ export interface ScopeAsset {
   tags: string[];
 }
 
+const API_URL = 'http://localhost:3001/api';
+
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('pt');
+  const [scopeAssets, setScopeAssets] = useState<ScopeAsset[]>([]);
+  const [settings, setSettings] = useState<SystemSettings>({
+    user_name: 'Carregando...',
+    user_role: 'Analista',
+    system_name: 'ThreatOne',
+    accent_color: '#3b82f6'
+  });
 
-  // Global Monitoring State
   const [monitoredForums, setMonitoredForums] = useState(['XSS.is', 'Exploit.in', 'BreachForums']);
   const [monitoredChats, setMonitoredChats] = useState(['Telegram: @darknet_intel', 'Discord: Ops Brazil']);
-  const [authSites, setAuthSites] = useState<AuthSite[]>([
-    { id: '1', url: 'https://intel-source.example.com', user: 'analyst_01', pass: '********' }
-  ]);
+  const [authSites, setAuthSites] = useState<AuthSite[]>([]);
 
-  // Global Scope State
-  const [scopeAssets, setScopeAssets] = useState<ScopeAsset[]>([
-    { id: '1', type: 'Domain', value: 'empresa-cliente.com.br', status: 'Protected', lastSeen: '10 mins ago', tags: ['Principal', 'Web'] },
-    { id: '2', type: 'IP', value: '200.155.10.0/24', status: 'Protected', lastSeen: '1 hour ago', tags: ['DataCenter', 'DMZ'] },
-    { id: '3', type: 'Keyword', value: 'EmpresaClienteOficial', status: 'Exposed', lastSeen: '2 mins ago', tags: ['Brand Protection'] },
-  ]);
+  // Carregar dados iniciais
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [assetsRes, settingsRes] = await Promise.all([
+          fetch(`${API_URL}/assets`),
+          fetch(`${API_URL}/settings`)
+        ]);
+        
+        const assetsData = await assetsRes.json();
+        const settingsData = await settingsRes.json();
+
+        setScopeAssets(assetsData.map((item: any) => ({
+          id: item.id.toString(),
+          type: item.type,
+          value: item.value,
+          status: item.status,
+          lastSeen: item.last_seen,
+          tags: ['MySQL']
+        })));
+
+        if (settingsData.user_name) {
+          setSettings(settingsData);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      }
+    };
+    loadData();
+  }, []);
+
+  const handleUpdateSettings = async (newSettings: Partial<SystemSettings>) => {
+    try {
+      const updated = { ...settings, ...newSettings };
+      await fetch(`${API_URL}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSettings)
+      });
+      setSettings(updated);
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+    }
+  };
 
   const renderView = () => {
     switch (activeTab) {
@@ -60,20 +112,11 @@ const App: React.FC = () => {
       case 'correlation': return <CorrelationCenter scopeAssets={scopeAssets} />;
       case 'threat-actors': return <ThreatActorsView />;
       case 'indicators': return <IndicatorsView />;
-      case 'insider': return (
-        <InsiderView 
-          monitoredForums={monitoredForums} 
-          monitoredChats={monitoredChats} 
-        />
-      );
+      case 'insider': return <InsiderView monitoredForums={monitoredForums} monitoredChats={monitoredChats} />;
       case 'playbooks': return <PlaybooksView />;
       case 'suppliers': return <SupplierAssessmentView />;
       case 'leaks': return <PasswordLeaksView />;
-      case 'stackmon': return (
-        <AssetMonitorView 
-          scopeAssets={scopeAssets} 
-        />
-      );
+      case 'stackmon': return <AssetMonitorView scopeAssets={scopeAssets} />;
       case 'ransomware': return <RansomwareVictimsView />;
       case 'stix-graph': return <StixGraphView />;
       case 'cisa-kev': return <CisaKevView />;
@@ -86,7 +129,12 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-soc-bg font-sans overflow-hidden">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} language={language} />
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        language={language} 
+        settings={settings}
+      />
       <div className="flex-1 flex flex-col min-w-0">
         <Header 
           activeTab={activeTab} 
@@ -98,6 +146,8 @@ const App: React.FC = () => {
           setMonitoredChats={setMonitoredChats}
           authSites={authSites}
           setAuthSites={setAuthSites}
+          settings={settings}
+          onUpdateSettings={handleUpdateSettings}
         />
         <main className="flex-1 overflow-y-auto p-6">
           {renderView()}

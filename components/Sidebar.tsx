@@ -1,31 +1,17 @@
 
 import React, { useState } from 'react';
 import { 
-  LayoutDashboard, 
-  ShieldAlert, 
-  Target, 
-  Users, 
-  FileText, 
-  UserX, 
-  Key, 
-  Monitor, 
-  Package,
-  Activity,
-  ChevronDown,
-  ChevronRight,
-  Database,
-  Network,
-  Skull,
-  Layout,
-  FileBarChart,
-  GitBranch
+  LayoutDashboard, ShieldAlert, Target, Users, FileText, UserX, Key, Monitor, 
+  Package, Activity, ChevronDown, ChevronRight, Database, Network, Skull, 
+  Layout, FileBarChart, GitBranch
 } from 'lucide-react';
-import { Language } from '../App';
+import { Language, SystemSettings } from '../App';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   language: Language;
+  settings: SystemSettings;
 }
 
 interface MenuItem {
@@ -37,14 +23,11 @@ interface MenuItem {
   items?: MenuItem[];
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, language }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, language, settings }) => {
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   const toggleSection = (label: string) => {
-    setCollapsedSections(prev => ({
-      ...prev,
-      [label]: !prev[label]
-    }));
+    setCollapsedSections(prev => ({ ...prev, [label]: !prev[label] }));
   };
 
   const menuSections: MenuItem[] = [
@@ -103,15 +86,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, langu
   return (
     <aside className="w-64 bg-soc-card border-r border-soc-border flex flex-col">
       <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 rounded bg-soc-primary flex items-center justify-center shadow-lg transition-all duration-500">
+        <div className="w-8 h-8 rounded flex items-center justify-center shadow-lg transition-all" style={{ backgroundColor: settings.accent_color }}>
           <ShieldAlert className="text-white" size={20} />
         </div>
-        <span className="font-bold text-xl tracking-tight text-white uppercase">Sentinel<span className="text-soc-primary">CTI</span></span>
+        <span className="font-bold text-xl tracking-tight text-white uppercase">
+          {settings.system_name.slice(0, -3)}
+          <span style={{ color: settings.accent_color }}>{settings.system_name.slice(-3)}</span>
+        </span>
       </div>
       
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
         {menuSections.map((section, idx) => (
-          <div key={`section-${idx}`} className="mb-2">
+          <div key={`section-${idx}`} className="mb-2 text-left">
             {section.isHeader ? (
               <>
                 <button 
@@ -127,11 +113,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, langu
                       <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id!)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                        className={`w-full flex items-center px-3 py-2 rounded-lg transition-all text-sm font-medium ${
                           activeTab === item.id 
-                            ? 'bg-soc-primary text-white shadow-lg shadow-blue-900/20' 
+                            ? 'text-white shadow-lg' 
                             : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-100'
                         }`}
+                        style={activeTab === item.id ? { backgroundColor: settings.accent_color } : {}}
                       >
                         <div className="flex items-center gap-3">
                           <item.icon size={16} />
@@ -147,9 +134,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, langu
                 onClick={() => setActiveTab(section.id!)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${
                   activeTab === section.id 
-                    ? 'bg-soc-primary text-white shadow-lg shadow-blue-900/20' 
+                    ? 'text-white shadow-lg' 
                     : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-100'
                 }`}
+                style={activeTab === section.id ? { backgroundColor: settings.accent_color } : {}}
               >
                 <section.icon size={18} />
                 {language === 'en' ? section.label : section.ptLabel}
@@ -161,12 +149,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, langu
 
       <div className="p-4 border-t border-soc-border">
         <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-900/50 border border-soc-border">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-soc-primary to-soc-accent flex items-center justify-center text-xs font-bold text-white">
-            AD
+          <div 
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+            style={{ backgroundColor: settings.accent_color }}
+          >
+            {settings.user_name.charAt(0)}
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <p className="text-sm font-medium text-gray-200 truncate">Admin User</p>
-            <p className="text-xs text-gray-500 truncate">{language === 'en' ? 'Security Architect' : 'Arquiteto de Segurança'}</p>
+            <p className="text-sm font-medium text-gray-200 truncate">{settings.user_name}</p>
+            <p className="text-xs text-gray-500 truncate">{settings.user_role}</p>
           </div>
         </div>
       </div>

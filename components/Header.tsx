@@ -1,11 +1,10 @@
 
 import React, { useState } from 'react';
 import { 
-  Search, Bell, Settings, X, Languages, CheckCircle2, 
-  Eye, Plus, Trash2, Info, Activity, Key, Globe, AlertTriangle, 
-  Shield, Database, Code, Network, Copyright, Zap, EyeOff
+  Search, Bell, Settings, X, Languages, CheckCircle2, Eye, Info, Activity, Key, Globe, 
+  AlertTriangle, User, Palette, Save, Layout, Plus, Trash2, EyeOff, Code, Database, Shield, Network
 } from 'lucide-react';
-import { Language, AuthSite } from '../App';
+import { Language, SystemSettings, AuthSite } from '../App';
 
 interface HeaderProps {
   activeTab: string;
@@ -17,84 +16,68 @@ interface HeaderProps {
   setMonitoredChats: (val: string[]) => void;
   authSites: AuthSite[];
   setAuthSites: (val: AuthSite[]) => void;
+  settings: SystemSettings;
+  onUpdateSettings: (newSettings: Partial<SystemSettings>) => Promise<void>;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  activeTab, language, setLanguage, 
-  monitoredForums, setMonitoredForums, 
-  monitoredChats, setMonitoredChats
+  activeTab, language, setLanguage, monitoredForums, setMonitoredForums, monitoredChats, setMonitoredChats,
+  authSites, setAuthSites, settings, onUpdateSettings
 }) => {
-  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeConfigModal, setActiveConfigModal] = useState<string | null>(null);
   
+  // States para APIs e Monitoramento
   const [newForum, setNewForum] = useState('');
   const [newChat, setNewChat] = useState('');
-  
-  // API Keys state - Initialized with empty strings to be editable
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({
-    virustotal: '',
-    alienvault: '',
-    shodan: '',
-    cisakey: '',
-    github: '',
-    ransomwareApi: ''
+    virustotal: '', shodan: '', alienvault: '', github: '', ransomwareApi: ''
   });
-
-  const [customApis, setCustomApis] = useState<{id: string, name: string, key: string}[]>([]);
-  const [isAddingCustom, setIsAddingCustom] = useState(false);
-  const [newCustomProvider, setNewCustomProvider] = useState({ name: '', key: '' });
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [isAddingAuthSite, setIsAddingAuthSite] = useState(false);
+  const [newAuthSite, setNewAuthSite] = useState<Partial<AuthSite>>({ name: '', url: '', user: '', pass: '' });
+
+  // States para Perfil e Branding
+  const [editProfile, setEditProfile] = useState({ name: settings.user_name, role: settings.user_role });
+  const [editBranding, setEditBranding] = useState({ systemName: settings.system_name, color: settings.accent_color });
 
   const t = {
     search: language === 'en' ? 'Global search...' : 'Busca global...',
     monitoring: language === 'en' ? 'Monitoring Config' : 'Config. de Monitoramento',
     apiTitle: language === 'en' ? 'API Integrations' : 'Integrações de API',
-    aboutTitle: language === 'en' ? 'About Sentinel CTI' : 'Sobre o Sentinel CTI',
+    profile: language === 'en' ? 'User Profile' : 'Perfil do Usuário',
+    branding: language === 'en' ? 'System Branding' : 'Marca do Sistema',
+    aboutTitle: language === 'en' ? 'About' : 'Sobre',
     langSwitch: language === 'en' ? 'Switch to Portuguese' : 'Mudar para Inglês',
     save: language === 'en' ? 'Finish' : 'Concluir',
     cancel: language === 'en' ? 'Close' : 'Fechar',
   };
 
-  const toggleSettings = () => { setIsSettingsOpen(!isSettingsOpen); setIsAlertsOpen(false); };
-
-  const handleConfigClick = (type: string) => { 
-    setActiveConfigModal(type); 
-    setIsSettingsOpen(false); 
+  const handleSaveProfile = async () => {
+    await onUpdateSettings({ user_name: editProfile.name, user_role: editProfile.role });
+    setActiveConfigModal(null);
   };
 
-  const updateApiKey = (id: string, val: string) => {
-    setApiKeys(prev => ({ ...prev, [id]: val }));
+  const handleSaveBranding = async () => {
+    await onUpdateSettings({ system_name: editBranding.systemName, accent_color: editBranding.color });
+    setActiveConfigModal(null);
   };
 
   const toggleKeyVisibility = (id: string) => {
     setShowKeys(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleAddForum = () => {
-    if (newForum.trim()) {
-      setMonitoredForums([...monitoredForums, newForum.trim()]);
-      setNewForum('');
+  const handleAddAuthSite = () => {
+    if (newAuthSite.name && newAuthSite.url) {
+      setAuthSites([...authSites, { ...newAuthSite, id: Date.now().toString() } as AuthSite]);
+      setNewAuthSite({ name: '', url: '', user: '', pass: '' });
+      setIsAddingAuthSite(false);
     }
-  };
-
-  const handleAddChat = () => {
-    if (newChat.trim()) {
-      setMonitoredChats([...monitoredChats, newChat.trim()]);
-      setNewChat('');
-    }
-  };
-
-  const addCustomProvider = () => {
-    if (!newCustomProvider.name || !newCustomProvider.key) return;
-    setCustomApis(prev => [...prev, { ...newCustomProvider, id: Date.now().toString() }]);
-    setNewCustomProvider({ name: '', key: '' });
-    setIsAddingCustom(false);
   };
 
   return (
     <header className="h-16 border-b border-soc-border bg-soc-card flex items-center justify-between px-6 sticky top-0 z-50">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 text-left">
         <h2 className="text-lg font-semibold text-white capitalize">{activeTab.replace('-', ' ')}</h2>
         <div className="h-4 w-[1px] bg-soc-border"></div>
         <div className="relative group">
@@ -104,26 +87,26 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2">
-        <button onClick={() => setIsAlertsOpen(!isAlertsOpen)} className={`p-2 rounded-full relative ${isAlertsOpen ? 'bg-soc-primary/20 text-soc-primary' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
-          <Bell size={20} /><span className="absolute top-2 right-2.5 w-2 h-2 bg-soc-danger rounded-full border-2 border-soc-card"></span>
-        </button>
-        <button onClick={toggleSettings} className={`p-2 rounded-full transition-all ${isSettingsOpen ? 'bg-soc-primary/20 text-soc-primary rotate-45' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
+        <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className={`p-2 rounded-full transition-all ${isSettingsOpen ? 'bg-soc-primary/20 text-soc-primary rotate-45' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
           <Settings size={20} />
         </button>
       </div>
 
       {isSettingsOpen && (
-        <div className="absolute right-6 top-16 mt-2 w-72 bg-soc-card border border-soc-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50 ring-1 ring-white/5">
-          <div className="p-4 border-b border-soc-border bg-gray-900/30 font-bold text-[10px] text-gray-500 uppercase tracking-widest">System Configuration</div>
+        <div className="absolute right-6 top-16 mt-2 w-72 bg-soc-card border border-soc-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 z-50 ring-1 ring-white/5">
+          <div className="p-4 border-b border-soc-border bg-gray-900/30 font-bold text-[10px] text-gray-500 uppercase tracking-widest text-left">Configurações</div>
           <div className="p-2 space-y-1">
-            <button onClick={() => handleConfigClick('Monitoring')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all group text-left">
-              <Activity size={16} className="group-hover:text-soc-primary" /> {t.monitoring}
+            <button onClick={() => setActiveConfigModal('Monitoring')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all text-left">
+              <Activity size={16} /> {t.monitoring}
             </button>
-            <button onClick={() => handleConfigClick('API')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all group text-left">
-              <Key size={16} className="group-hover:text-soc-warning" /> {t.apiTitle}
+            <button onClick={() => setActiveConfigModal('API')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all text-left">
+              <Key size={16} /> {t.apiTitle}
             </button>
-            <button onClick={() => handleConfigClick('About')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all group text-left">
-              <Info size={16} className="group-hover:text-soc-accent" /> {t.aboutTitle}
+            <button onClick={() => setActiveConfigModal('Profile')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all text-left">
+              <User size={16} /> {t.profile}
+            </button>
+            <button onClick={() => setActiveConfigModal('Branding')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all text-left">
+              <Palette size={16} /> {t.branding}
             </button>
             <div className="h-[1px] bg-soc-border my-2 mx-2"></div>
             <button onClick={() => setLanguage(language === 'en' ? 'pt' : 'en')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold text-soc-primary hover:bg-soc-primary/10 transition-all text-left">
@@ -135,20 +118,15 @@ export const Header: React.FC<HeaderProps> = ({
 
       {activeConfigModal && (
         <div className="fixed inset-0 z-[100] bg-soc-bg/95 backdrop-blur-lg flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl bg-soc-card border border-soc-border rounded-3xl shadow-2xl overflow-hidden ring-1 ring-white/10 flex flex-col max-h-[90vh]">
+          <div className="w-full max-w-2xl bg-soc-card border border-soc-border rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-soc-border flex justify-between items-center bg-gray-900/40 shrink-0">
-              <div className="flex items-center gap-3">
-                {activeConfigModal === 'Monitoring' && <Activity className="text-soc-primary" size={24} />}
-                {activeConfigModal === 'API' && <Key className="text-soc-warning" size={24} />}
-                {activeConfigModal === 'About' && <Info className="text-soc-accent" size={24} />}
-                <h3 className="text-xl font-bold text-white uppercase tracking-tighter">
-                  {activeConfigModal === 'Monitoring' ? t.monitoring : activeConfigModal === 'API' ? t.apiTitle : t.aboutTitle}
-                </h3>
-              </div>
-              <button onClick={() => setActiveConfigModal(null)} className="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"><X size={24} /></button>
+              <h3 className="text-xl font-bold text-white uppercase tracking-tighter">
+                {activeConfigModal === 'Monitoring' ? t.monitoring : activeConfigModal === 'API' ? t.apiTitle : activeConfigModal === 'Profile' ? t.profile : activeConfigModal === 'Branding' ? t.branding : 'Settings'}
+              </h3>
+              <button onClick={() => setActiveConfigModal(null)} className="text-gray-500 hover:text-white p-2 rounded-full"><X size={24} /></button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-8 space-y-8 text-left">
               {activeConfigModal === 'Monitoring' && (
                 <div className="space-y-10">
                   <div className="space-y-4">
@@ -156,129 +134,127 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-3">
                          <div className="flex gap-2">
-                           <input type="text" value={newForum} onChange={(e)=>setNewForum(e.target.value)} placeholder="Add Forum URL/Name..." className="flex-1 bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-sm text-white focus:ring-1 focus:ring-soc-primary outline-none" />
-                           <button onClick={handleAddForum} className="p-2 bg-soc-primary text-white rounded-xl"><Plus size={18}/></button>
+                           <input type="text" value={newForum} onChange={(e)=>setNewForum(e.target.value)} placeholder="URL do Fórum..." className="flex-1 bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-sm text-white focus:ring-1 focus:ring-soc-primary outline-none" />
+                           <button onClick={() => {if(newForum) setMonitoredForums([...monitoredForums, newForum]); setNewForum('')}} className="p-2 bg-soc-primary text-white rounded-xl"><Plus size={18}/></button>
                          </div>
                          <div className="flex flex-wrap gap-2">{monitoredForums.map(f=><span key={f} className="text-[10px] bg-gray-900 px-2 py-1 rounded border border-soc-border text-gray-400">{f}</span>)}</div>
                       </div>
                       <div className="space-y-3">
                          <div className="flex gap-2">
-                           <input type="text" value={newChat} onChange={(e)=>setNewChat(e.target.value)} placeholder="Add Chat Channel..." className="flex-1 bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-sm text-white focus:ring-1 focus:ring-soc-accent outline-none" />
-                           <button onClick={handleAddChat} className="p-2 bg-soc-accent text-white rounded-xl"><Plus size={18}/></button>
+                           <input type="text" value={newChat} onChange={(e)=>setNewChat(e.target.value)} placeholder="Canal de Chat..." className="flex-1 bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-sm text-white focus:ring-1 focus:ring-soc-accent outline-none" />
+                           <button onClick={() => {if(newChat) setMonitoredChats([...monitoredChats, newChat]); setNewChat('')}} className="p-2 bg-soc-accent text-white rounded-xl"><Plus size={18}/></button>
                          </div>
                          <div className="flex flex-wrap gap-2">{monitoredChats.map(c=><span key={c} className="text-[10px] bg-gray-900 px-2 py-1 rounded border border-soc-border text-gray-400">{c}</span>)}</div>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"><Key size={14} className="text-soc-warning" /> Sites Autenticados (Login Monitor)</h4>
+                    <div className="space-y-3">
+                      {authSites.map(site => (
+                        <div key={site.id} className="p-4 bg-gray-900 border border-soc-border rounded-xl flex items-center justify-between group">
+                          <div>
+                            <p className="text-sm font-bold text-white">{site.name}</p>
+                            <p className="text-xs text-gray-500 font-mono">{site.url}</p>
+                          </div>
+                          <button onClick={() => setAuthSites(authSites.filter(s => s.id !== site.id))} className="text-gray-600 hover:text-soc-danger"><Trash2 size={16}/></button>
+                        </div>
+                      ))}
+                      
+                      {isAddingAuthSite ? (
+                        <div className="bg-gray-900/50 p-6 rounded-2xl border border-soc-warning/30 space-y-4 animate-in zoom-in-95">
+                          <div className="grid grid-cols-2 gap-3">
+                            <input type="text" placeholder="Nome do Alvo" value={newAuthSite.name} onChange={e=>setNewAuthSite({...newAuthSite, name: e.target.value})} className="bg-soc-bg border border-soc-border rounded-lg px-3 py-2 text-xs text-white"/>
+                            <input type="text" placeholder="URL de Login" value={newAuthSite.url} onChange={e=>setNewAuthSite({...newAuthSite, url: e.target.value})} className="bg-soc-bg border border-soc-border rounded-lg px-3 py-2 text-xs text-white"/>
+                            <input type="text" placeholder="Usuário" value={newAuthSite.user} onChange={e=>setNewAuthSite({...newAuthSite, user: e.target.value})} className="bg-soc-bg border border-soc-border rounded-lg px-3 py-2 text-xs text-white"/>
+                            <input type="password" placeholder="Senha" value={newAuthSite.pass} onChange={e=>setNewAuthSite({...newAuthSite, pass: e.target.value})} className="bg-soc-bg border border-soc-border rounded-lg px-3 py-2 text-xs text-white"/>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={handleAddAuthSite} className="flex-1 py-2 bg-soc-warning text-white rounded-lg text-xs font-bold">Salvar Site</button>
+                            <button onClick={() => setIsAddingAuthSite(false)} className="px-4 py-2 text-gray-500 text-xs">Cancelar</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button onClick={() => setIsAddingAuthSite(true)} className="w-full py-3 border-2 border-dashed border-soc-border rounded-xl text-gray-500 hover:text-white transition-all text-xs font-bold flex items-center justify-center gap-2">
+                          <Plus size={16} /> Adicionar Site com Autenticação
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
 
               {activeConfigModal === 'API' && (
-                <div className="space-y-8 animate-in slide-in-from-bottom-2">
+                <div className="space-y-6">
                   <div className="p-4 bg-soc-warning/5 border border-soc-warning/20 rounded-2xl flex gap-4 items-start">
                     <AlertTriangle className="text-soc-warning shrink-0" size={20} />
-                    <p className="text-xs text-gray-400 leading-relaxed">Insira suas chaves de API abaixo. Elas serão salvas localmente para alimentar as ferramentas de monitoramento e busca.</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">Configurações de APIs para enriquecimento de inteligência tática.</p>
                   </div>
-
-                  <div className="grid grid-cols-1 gap-6">
-                    {/* VirusTotal */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><Shield size={12} className="text-soc-primary" /> VirusTotal API Key</label>
+                  
+                  {[
+                    { id: 'virustotal', label: 'VirusTotal API', icon: Shield, color: 'text-soc-primary' },
+                    { id: 'shodan', label: 'Shodan API', icon: Database, color: 'text-soc-accent' },
+                    { id: 'alienvault', label: 'AlienVault OTX', icon: Network, color: 'text-soc-warning' },
+                    { id: 'github', label: 'GitHub PAT', icon: Code, color: 'text-soc-primary' },
+                    { id: 'ransomwareApi', label: 'Ransomware Feed API', icon: Activity, color: 'text-soc-danger' }
+                  ].map(api => (
+                    <div key={api.id} className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase flex items-center gap-2"><api.icon size={12} className={api.color} /> {api.label}</label>
                       <div className="relative">
-                        <input type={showKeys['vt'] ? 'text' : 'password'} value={apiKeys.virustotal} onChange={(e) => updateApiKey('virustotal', e.target.value)} placeholder="VirusTotal Key..." className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-1 focus:ring-soc-warning pr-12" />
-                        <button onClick={() => toggleKeyVisibility('vt')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">{showKeys['vt'] ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
+                        <input 
+                          type={showKeys[api.id] ? 'text' : 'password'} 
+                          value={apiKeys[api.id]} 
+                          onChange={(e) => setApiKeys({...apiKeys, [api.id]: e.target.value})}
+                          placeholder="API Key..." 
+                          className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-sm text-white focus:ring-1 focus:ring-soc-primary outline-none pr-10" 
+                        />
+                        <button onClick={() => toggleKeyVisibility(api.id)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">{showKeys[api.id] ? <EyeOff size={16}/> : <Eye size={16}/>}</button>
                       </div>
                     </div>
-
-                    {/* Shodan - SEPARATE LINE */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><Database size={12} className="text-soc-accent" /> Shodan API Key</label>
-                      <div className="relative">
-                        <input type={showKeys['shodan'] ? 'text' : 'password'} value={apiKeys.shodan} onChange={(e) => updateApiKey('shodan', e.target.value)} placeholder="Shodan Key..." className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-1 focus:ring-soc-warning pr-12" />
-                        <button onClick={() => toggleKeyVisibility('shodan')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">{showKeys['shodan'] ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
-                      </div>
-                    </div>
-
-                    {/* CISA Feed - SEPARATE LINE */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><Activity size={12} className="text-soc-warning" /> CISA Feed Token</label>
-                      <div className="relative">
-                        <input type={showKeys['cisa'] ? 'text' : 'password'} value={apiKeys.cisakey} onChange={(e) => updateApiKey('cisakey', e.target.value)} placeholder="CISA Feed Token..." className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-1 focus:ring-soc-warning pr-12" />
-                        <button onClick={() => toggleKeyVisibility('cisa')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">{showKeys['cisa'] ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
-                      </div>
-                    </div>
-
-                    {/* Ransomware Victims Monitor API */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><Network size={12} className="text-soc-danger" /> Ransomware Monitor API</label>
-                      <div className="relative">
-                        <input type={showKeys['ransom'] ? 'text' : 'password'} value={apiKeys.ransomwareApi} onChange={(e) => updateApiKey('ransomwareApi', e.target.value)} placeholder="Ransomware Feed API..." className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-1 focus:ring-soc-warning pr-12" />
-                        <button onClick={() => toggleKeyVisibility('ransom')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">{showKeys['ransom'] ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
-                      </div>
-                    </div>
-
-                    {/* GitHub */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><Code size={12} className="text-soc-primary" /> GitHub Personal Access Token</label>
-                      <div className="relative">
-                        <input type={showKeys['github'] ? 'text' : 'password'} value={apiKeys.github} onChange={(e) => updateApiKey('github', e.target.value)} placeholder="GitHub PAT..." className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-1 focus:ring-soc-warning pr-12" />
-                        <button onClick={() => toggleKeyVisibility('github')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">{showKeys['github'] ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
-                      </div>
-                    </div>
-
-                    {customApis.map((api) => (
-                      <div key={api.id} className="space-y-2 p-4 bg-gray-900 rounded-xl border border-soc-border flex justify-between items-center group">
-                        <div className="flex-1">
-                          <label className="text-[10px] font-bold text-soc-success uppercase tracking-widest">{api.name}</label>
-                          <p className="text-xs text-gray-500 font-mono truncate">{api.key.replace(/./g, '*')}</p>
-                        </div>
-                        <button onClick={() => setCustomApis(customApis.filter(a => a.id !== api.id))} className="text-soc-danger p-2 hover:bg-soc-danger/10 rounded-lg"><Trash2 size={16}/></button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {isAddingCustom ? (
-                    <div className="bg-gray-900/50 border border-soc-primary/30 p-6 rounded-2xl space-y-4 animate-in zoom-in-95">
-                      <h4 className="text-[10px] font-bold text-soc-primary uppercase tracking-widest">Register New Intelligence Provider</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" placeholder="Provider Name" value={newCustomProvider.name} onChange={(e) => setNewCustomProvider({...newCustomProvider, name: e.target.value})} className="bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-xs text-white" />
-                        <input type="text" placeholder="API Key..." value={newCustomProvider.key} onChange={(e) => setNewCustomProvider({...newCustomProvider, key: e.target.value})} className="bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-xs text-white" />
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={addCustomProvider} className="flex-1 py-2 bg-soc-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest">Register</button>
-                        <button onClick={() => setIsAddingCustom(false)} className="px-4 py-2 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button onClick={() => setIsAddingCustom(true)} className="w-full py-3 bg-soc-warning/10 border border-soc-warning/30 text-soc-warning rounded-2xl text-xs font-bold hover:bg-soc-warning/20 transition-all flex items-center justify-center gap-2"><Plus size={16} /> Adicionar Novo Provedor de Inteligência</button>
-                  )}
+                  ))}
                 </div>
               )}
 
-              {activeConfigModal === 'About' && (
-                <div className="space-y-8 text-center py-4">
-                  <div className="flex flex-col items-center">
-                    <div className="w-20 h-20 bg-soc-primary/20 rounded-3xl flex items-center justify-center border border-soc-primary/30 shadow-2xl mb-6"><Shield size={40} className="text-soc-primary" /></div>
-                    <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Sentinel<span className="text-soc-primary">CTI</span></h2>
-                    <p className="text-xs text-gray-500 font-mono mt-2 bg-gray-900 px-3 py-1 rounded-full border border-soc-border">v2.4.0-Stable // 2026.05.24</p>
+              {activeConfigModal === 'Profile' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Nome do Analista</label>
+                    <input type="text" value={editProfile.name} onChange={(e) => setEditProfile({...editProfile, name: e.target.value})} className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-white outline-none focus:ring-1 focus:ring-soc-primary" />
                   </div>
-                  <div className="max-w-md mx-auto space-y-6">
-                    <div className="space-y-2">
-                      <h4 className="text-[10px] font-bold text-soc-primary uppercase tracking-[0.2em]">Direitos Autorais</h4>
-                      <div className="flex items-center justify-center gap-2 text-gray-400 text-sm"><Copyright size={14} /> 2026 Sentinel Defense Systems. All rights reserved.</div>
-                    </div>
-                    <div className="space-y-3 text-left bg-gray-900/40 border border-soc-border p-6 rounded-2xl">
-                      <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-2"><Zap size={14} className="text-soc-warning" /> Operação do Sistema</h4>
-                      <p className="text-xs text-gray-400 leading-relaxed">A plataforma integra-se com APIs externas e utiliza o <b>Gemini 3 Pro</b> com busca em tempo real para validar ameaças e monitorar ativos. Toda inteligência é agregada via web scraping e grounding.</p>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Cargo / Função</label>
+                    <input type="text" value={editProfile.role} onChange={(e) => setEditProfile({...editProfile, role: e.target.value})} className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-white outline-none focus:ring-1 focus:ring-soc-primary" />
+                  </div>
+                  <button onClick={handleSaveProfile} className="w-full py-3 bg-soc-primary text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-soc-primary/20 transition-all hover:scale-[1.02]">
+                    <Save size={18} /> Salvar Perfil
+                  </button>
+                </div>
+              )}
+
+              {activeConfigModal === 'Branding' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Nome do Sistema</label>
+                    <input type="text" value={editBranding.systemName} onChange={(e) => setEditBranding({...editBranding, systemName: e.target.value})} className="w-full bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-white outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Cor de Destaque (HEX)</label>
+                    <div className="flex gap-2">
+                      <input type="color" value={editBranding.color} onChange={(e) => setEditBranding({...editBranding, color: e.target.value})} className="h-10 w-10 bg-transparent border-none rounded cursor-pointer" />
+                      <input type="text" value={editBranding.color} onChange={(e) => setEditBranding({...editBranding, color: e.target.value})} className="flex-1 bg-soc-bg border border-soc-border rounded-xl px-4 py-2 text-white outline-none font-mono" />
                     </div>
                   </div>
+                  <button onClick={handleSaveBranding} className="w-full py-3 bg-soc-primary text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02]" style={{ backgroundColor: editBranding.color }}>
+                    <Save size={18} /> Aplicar Identidade Visual
+                  </button>
                 </div>
               )}
             </div>
 
             <div className="p-6 bg-gray-900/30 border-t border-soc-border flex gap-3">
                <button onClick={() => setActiveConfigModal(null)} className="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-white transition-all">{t.cancel}</button>
-               {activeConfigModal !== 'About' && <button onClick={() => setActiveConfigModal(null)} className="flex-1 py-3 bg-soc-primary text-white rounded-2xl text-sm font-bold shadow-lg shadow-soc-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"><CheckCircle2 size={18} /> {t.save}</button>}
+               <button onClick={() => setActiveConfigModal(null)} className="flex-1 py-3 bg-soc-primary text-white rounded-2xl text-sm font-bold shadow-lg shadow-soc-primary/20 transition-all flex items-center justify-center gap-2"><CheckCircle2 size={18} /> {t.save}</button>
             </div>
           </div>
         </div>

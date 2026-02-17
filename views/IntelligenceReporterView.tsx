@@ -147,7 +147,7 @@ export const IntelligenceReporterView: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-soc-primary rounded-lg text-white"><Shield size={24} /></div>
-                  <span className="text-2xl font-black tracking-tighter uppercase text-gray-900">Sentinel<span className="text-soc-primary">CTI</span></span>
+                  <span className="text-2xl font-black tracking-tighter uppercase text-gray-900">Threat<span className="text-soc-primary">One</span></span>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-black uppercase text-soc-primary tracking-[0.2em]">Classificação de Segurança</p>
